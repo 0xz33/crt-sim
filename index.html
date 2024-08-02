@@ -429,16 +429,12 @@
         const increment = group.querySelector(".increment");
 
         decrement.addEventListener("click", () => {
-          input.value = (
-            parseFloat(input.value) - parseFloat(input.step)
-          ).toFixed(1);
+          input.value = (parseFloat(input.value) - 1).toFixed(1);
           input.dispatchEvent(new Event("input"));
         });
 
         increment.addEventListener("click", () => {
-          input.value = (
-            parseFloat(input.value) + parseFloat(input.step)
-          ).toFixed(1);
+          input.value = (parseFloat(input.value) + 1).toFixed(1);
           input.dispatchEvent(new Event("input"));
         });
       });
