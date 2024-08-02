@@ -114,48 +114,48 @@
       <div class="input-group">
         <label>Wave 1 Frequency:</label>
         <button class="decrement">-</button>
-        <input type="number" id="freq1" value="10" step="0.1" />
+        <input type="number" id="freq1" value="5" step="0.1" />
         <button class="increment">+</button>
       </div>
       <div class="input-group">
         <label>Wave 2 Frequency:</label>
         <button class="decrement">-</button>
-        <input type="number" id="freq2" value="10" step="0.1" />
+        <input type="number" id="freq2" value="5" step="0.1" />
         <button class="increment">+</button>
       </div>
       <div class="input-group">
         <label>Wave 1 Speed:</label>
         <button class="decrement">-</button>
-        <input type="number" id="speed1" value="0.5" step="0.1" />
+        <input type="number" id="speed1" value="1.0" step="0.1" />
         <button class="increment">+</button>
       </div>
       <div class="input-group">
         <label>Wave 2 Speed:</label>
         <button class="decrement">-</button>
-        <input type="number" id="speed2" value="0.3" step="0.1" />
+        <input type="number" id="speed2" value="0.5" step="0.1" />
         <button class="increment">+</button>
       </div>
       <label>Wave Color:</label>
       <div class="color-input-group">
-        <input type="color" id="waveColor" value="#ffffff" />
-        <input type="text" id="waveColorHex" value="#ffffff" />
+        <input type="color" id="waveColor" value="#DCD7F4" />
+        <input type="text" id="waveColorHex" value="#DCD7F4" />
       </div>
       <br />
       <label>Box Color:</label>
       <div class="color-input-group">
-        <input type="color" id="boxColor" value="#DCD7F4" />
-        <input type="text" id="boxColorHex" value="#DCD7F4" />
+        <input type="color" id="boxColor" value="#00ff00" />
+        <input type="text" id="boxColorHex" value="#00ff00" />
       </div>
       <br />
       <label>Background Color:</label>
       <div class="color-input-group">
-        <!-- <input type="color" id="bgColor" value="#ccff00" /> -->
-        <!-- <input type="text" id="bgColorHex" value="#ccff00" /> -->
+        <input type="color" id="bgColor" value="#000000" />
+        <input type="text" id="bgColorHex" value="#000000" />
       </div>
       <br />
       <label
         >Shadow Intensity:
-        <input type="range" id="shadowIntensity" min="0" max="20" value="10"
+        <input type="range" id="shadowIntensity" min="0" max="20" value="5"
       /></label>
       <label>
         Text Blur:
@@ -164,7 +164,7 @@
           id="textBlur"
           min="0"
           max="10"
-          value="4"
+          value="2"
           step="0.1"
         />
       </label>
@@ -179,13 +179,13 @@
       const defaultValues = {
         freq1: 2222,
         freq2: 11,
-        speed1: 20,
+        speed1: 55,
         speed2: 1,
         waveColor: "#DCD7F4",
         boxColor: "#DCD7F4",
-        shadowIntensity: 22,
+        shadowIntensity: 5,
         bgColor: "#DCD7F4",
-        textBlur: 4,
+        textBlur: 2,
       };
 
       const canvas = document.getElementById("waveCanvas");
@@ -207,7 +207,7 @@
             uniform float u_speed1;
             uniform float u_speed2;
             uniform vec3 u_color;
-            uniform vec3 u_bgColor;  // Add this line
+            uniform vec3 u_bgColor;
 
             void main() {
                 vec2 st = gl_FragCoord.xy / u_resolution;
@@ -318,6 +318,7 @@
         .addEventListener("click", resetToDefault);
 
       function render(time) {
+        gl.clearColor(0, 0, 0, 1); // Set clear color to black
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.useProgram(program);
         gl.enableVertexAttribArray(positionAttributeLocation);

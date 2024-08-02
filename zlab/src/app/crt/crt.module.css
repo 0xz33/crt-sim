@@ -1,0 +1,109 @@
+.main {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+.controls {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(255, 255, 255, 0.7);
+  padding: 10px;
+  border-radius: 5px;
+  z-index: 10;
+  transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+  max-height: 1000px;
+  overflow: hidden;
+}
+
+.controls.minimized {
+  max-height: 30px;
+  padding: 5px 10px;
+  width: auto;
+}
+
+.controlTitle {
+  display: none;
+  font-weight: bold;
+}
+
+.controls.minimized .controlTitle {
+  display: block;
+}
+
+.controls.minimized > *:not(.minimizeBtn):not(.controlTitle) {
+  display: none;
+}
+
+.inputGroup {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.inputGroup button {
+  width: 25px;
+  height: 25px;
+  font-size: 16px;
+  padding: 0;
+  margin: 0 2px;
+}
+
+.inputGroup input[type="number"] {
+  width: 60px;
+}
+
+.minimizeBtn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-size: 20px;
+}
+
+.colorInputGroup {
+  display: flex;
+  align-items: center;
+}
+
+.colorInputGroup input[type="color"] {
+  margin-right: 5px;
+  width: 50px;
+  height: 20px;
+}
+
+.colorInputGroup input[type="text"] {
+  width: 70px;
+}
+
+.textContainer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+}
+
+.believeText {
+  font-size: 20vw;
+  font-weight: bold;
+  color: #ffffff;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  mix-blend-mode: exclusion;
+  letter-spacing: -0.075em;
+  filter: blur(4px);
+}
