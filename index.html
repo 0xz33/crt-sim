@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.10.1/dist/ffmpeg.min.js"></script>
     <title>Wave Interference Pattern with Rectangles</title>
     <style>
       body {
@@ -105,6 +106,42 @@
       .color-input-group input[type="text"] {
         width: 70px;
       }
+      #logo-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 6;
+        pointer-events: none;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      .logo-row {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+      }
+      #logo {
+        width: auto;
+        height: 33.33vh;
+        opacity: 0.5;
+        mix-blend-mode: overlay;
+      }
+      #recordButton {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 11;
+        padding: 10px 20px;
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
     </style>
   </head>
   <body>
@@ -173,6 +210,7 @@
     <div id="text-container">
       <div id="believe-text">BELIEVE</div>
     </div>
+    <div id="logo-container"></div>
     <canvas id="waveCanvas"></canvas>
     <script>
       // Default values moved to the top
@@ -317,7 +355,56 @@
         .getElementById("resetButton")
         .addEventListener("click", resetToDefault);
 
+      let isRecording = false;
+
+      function recordLoop(duration) {
+        if (isRecording) return;
+        isRecording = true;
+
+        const stream = canvas.captureStream(60); // 60 fps
+        const recorder = new MediaRecorder(stream, {
+          mimeType: "video/webm; codecs=vp9",
+          videoBitsPerSecond: 5000000, // 5 Mbps
+        });
+        const chunks = [];
+
+        recorder.ondataavailable = (e) => chunks.push(e.data);
+        recorder.onstop = () => {
+          const blob = new Blob(chunks, { type: "video/webm" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "wave_loop.webm";
+          a.click();
+          URL.revokeObjectURL(url);
+          isRecording = false;
+        };
+
+        recorder.start();
+        setTimeout(() => recorder.stop(), duration * 1000);
+      }
+
+      function calculateLoopDuration() {
+        const freq1 = parseFloat(document.getElementById("freq1").value);
+        const freq2 = parseFloat(document.getElementById("freq2").value);
+        const speed1 = parseFloat(document.getElementById("speed1").value);
+        const speed2 = parseFloat(document.getElementById("speed2").value);
+
+        // Calculate the period of each wave
+        const period1 = Math.abs(1 / (freq1 * speed1));
+        const period2 = Math.abs(1 / (freq2 * speed2));
+
+        // Find the least common multiple of the two periods
+        const gcd = (a, b) => (b === 0 ? a : gcd(b, a % b));
+        const lcm = (a, b) => (a * b) / gcd(a, b);
+
+        // Ensure the duration is at least 1 second and at most 10 seconds
+        return Math.min(Math.max(lcm(period1, period2), 1), 10);
+      }
+
       function render(time) {
+        const normalizedTime = time * 0.001; // Convert to seconds
+
         gl.clearColor(0, 0, 0, 1); // Set clear color to black
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.useProgram(program);
@@ -332,7 +419,7 @@
           0
         );
         gl.uniform2f(resolutionUniformLocation, canvas.width, canvas.height);
-        gl.uniform1f(timeUniformLocation, time * 0.001);
+        gl.uniform1f(timeUniformLocation, normalizedTime);
         gl.uniform1f(
           freq1UniformLocation,
           parseFloat(document.getElementById("freq1").value)
@@ -455,6 +542,81 @@
 
       // Initialize controls with default values
       resetToDefault();
+
+      function createTiledLogo() {
+        const logoContainer = document.getElementById("logo-container");
+        logoContainer.innerHTML = ""; // Clear existing content
+        const bgColor = document.getElementById("bgColor").value;
+
+        // Create three rows
+        for (let i = 0; i < 3; i++) {
+          const row = document.createElement("div");
+          row.className = "logo-row";
+          logoContainer.appendChild(row);
+        }
+
+        // Calculate logo dimensions once
+        const tempLogo = document.createElement("img");
+        tempLogo.src = "./Logo.svg";
+        tempLogo.style.height = "33.33vh";
+        document.body.appendChild(tempLogo);
+        const logoWidth = tempLogo.offsetWidth;
+        document.body.removeChild(tempLogo);
+
+        const logosPerRow = Math.ceil(window.innerWidth / logoWidth) + 1;
+
+        // Fetch SVG content once
+        fetch("./Logo.svg")
+          .then((response) => response.text())
+          .then((svgContent) => {
+            const rows = logoContainer.querySelectorAll(".logo-row");
+            rows.forEach((row) => {
+              for (let j = 0; j < logosPerRow; j++) {
+                const svgElement = new DOMParser()
+                  .parseFromString(svgContent, "image/svg+xml")
+                  .querySelector("svg");
+                svgElement.style.backgroundColor = bgColor;
+                svgElement.id = "logo";
+                svgElement.style.height = "33.33vh";
+                svgElement.style.width = "auto";
+                svgElement.style.opacity = "0.5";
+                svgElement.style.mixBlendMode = "overlay";
+                row.appendChild(svgElement);
+              }
+            });
+          });
+      }
+
+      // Update SVG background colors when bgColor changes
+      document.getElementById("bgColor").addEventListener("input", () => {
+        const newColor = document.getElementById("bgColor").value;
+        document.querySelectorAll("#logo-container svg").forEach((svg) => {
+          svg.style.backgroundColor = newColor;
+        });
+      });
+
+      // Add a button to trigger the recording
+      const recordButton = document.createElement("button");
+      recordButton.textContent = "Record Loop";
+      recordButton.id = "recordButton";
+      recordButton.onclick = () => {
+        const duration = calculateLoopDuration();
+        recordLoop(duration);
+      };
+      document.body.appendChild(recordButton);
+
+      // Show control panel on Command+K
+      document.addEventListener("keydown", (e) => {
+        if (e.metaKey && e.key === "k") {
+          e.preventDefault();
+          controlsPanel.classList.remove("minimized");
+          minimizeBtn.textContent = "-";
+        }
+      });
+
+      // Make sure to call createTiledLogo() initially and on window resize
+      window.addEventListener("resize", createTiledLogo);
+      createTiledLogo();
 
       requestAnimationFrame(render);
     </script>
