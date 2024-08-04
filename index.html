@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.10.1/dist/ffmpeg.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <title>Wave Interference Pattern with Rectangles</title>
     <style>
       body {
@@ -130,17 +132,25 @@
         opacity: 0.5;
         mix-blend-mode: overlay;
       }
-      #recordButton {
+      #webmButton,
+      #gifButton {
         position: fixed;
         bottom: 20px;
-        right: 20px;
-        z-index: 11;
         padding: 10px 20px;
         background-color: #4caf50;
         color: white;
         border: none;
         border-radius: 5px;
         cursor: pointer;
+        z-index: 11;
+      }
+
+      #webmButton {
+        right: 20px;
+      }
+
+      #gifButton {
+        right: 150px;
       }
     </style>
   </head>
@@ -357,14 +367,14 @@
 
       let isRecording = false;
 
-      function recordLoop(duration) {
+      function recordWebM(duration) {
         if (isRecording) return;
         isRecording = true;
 
         const stream = canvas.captureStream(60); // 60 fps
         const recorder = new MediaRecorder(stream, {
           mimeType: "video/webm; codecs=vp9",
-          videoBitsPerSecond: 5000000, // 5 Mbps
+          videoBitsPerSecond: 5000000,
         });
         const chunks = [];
 
@@ -382,6 +392,47 @@
 
         recorder.start();
         setTimeout(() => recorder.stop(), duration * 1000);
+      }
+
+      function recordGIF(duration) {
+        if (isRecording) return;
+        isRecording = true;
+
+        const fps = 30;
+        const totalFrames = duration * fps;
+        let frameCount = 0;
+
+        const gif = new GIF({
+          workers: 2,
+          quality: 10,
+          width: canvas.width,
+          height: canvas.height,
+          workerScript:
+            "https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js",
+        });
+
+        function captureFrame(time) {
+          if (frameCount < totalFrames) {
+            render(time); // Render the frame
+            gif.addFrame(canvas, { copy: true, delay: 1000 / fps });
+            frameCount++;
+            requestAnimationFrame(captureFrame);
+          } else {
+            gif.render();
+          }
+        }
+
+        gif.on("finished", function (blob) {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "wave_loop.gif";
+          a.click();
+          URL.revokeObjectURL(url);
+          isRecording = false;
+        });
+
+        requestAnimationFrame(captureFrame);
       }
 
       function calculateLoopDuration() {
@@ -595,15 +646,24 @@
         });
       });
 
-      // Add a button to trigger the recording
-      const recordButton = document.createElement("button");
-      recordButton.textContent = "Record Loop";
-      recordButton.id = "recordButton";
-      recordButton.onclick = () => {
+      // Add buttons to trigger the recording
+      const webmButton = document.createElement("button");
+      webmButton.textContent = "Record WebM";
+      webmButton.id = "webmButton";
+      webmButton.onclick = () => {
         const duration = calculateLoopDuration();
-        recordLoop(duration);
+        recordWebM(duration);
       };
-      document.body.appendChild(recordButton);
+      document.body.appendChild(webmButton);
+
+      const gifButton = document.createElement("button");
+      gifButton.textContent = "Record GIF";
+      gifButton.id = "gifButton";
+      gifButton.onclick = () => {
+        const duration = calculateLoopDuration();
+        recordGIF(duration);
+      };
+      document.body.appendChild(gifButton);
 
       // Show control panel on Command+K
       document.addEventListener("keydown", (e) => {
