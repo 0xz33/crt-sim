@@ -1,0 +1,30 @@
+.controlPanel {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background-color: rgba(255, 255, 255, 0.8);
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+}
+
+.controlGroup {
+  margin-bottom: 15px;
+}
+
+.controlGroup label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.controlGroup input {
+  width: 100%;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.controlGroup input[type="color"] {
+  height: 40px;
+}

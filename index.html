@@ -7,7 +7,19 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <title>Wave Interference Pattern with Rectangles</title>
+
+    <!-- Add the font import here -->
+    <link href="./MicrogrammaExtendedBold.otf" rel="stylesheet" />
+
     <style>
+      /* Add the font-face declaration */
+      @font-face {
+        font-family: "Microgramma";
+        src: url("./MicrogrammaExtendedBold.otf") format("opentype");
+        font-weight: 700;
+        font-style: normal;
+      }
+
       body {
         margin: 0;
         overflow: hidden;
@@ -31,6 +43,7 @@
         transition: max-height 0.3s ease-out, padding 0.3s ease-out;
         max-height: 1000px;
         overflow: hidden;
+        /* visibility: hidden; */
       }
       #controls.minimized {
         max-height: 30px;
@@ -85,18 +98,29 @@
         width: 100%;
         height: 100%;
         display: flex;
+        gap: 40px;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
         z-index: 5;
       }
       #believe-text {
-        font-size: 20vw;
+        font-size: 5.55vw;
         font-weight: bold;
-        color: #ffffff;
+        font-family: "Microgramma", sans-serif;
+        color: #030308;
+        line-height: 1;
         text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
         mix-blend-mode: exclusion;
-        letter-spacing: -0.075em;
-        filter: blur(4px);
+        text-align: center;
+        filter: blur(44px);
+        margin-bottom: 2vh; /* Add some space between text and SVG */
+      }
+      #morph-svg {
+        width: 160px; /* Adjust this value to change the size of the SVG */
+        height: auto;
+        max-width: 560px; /* Limit the maximum width if needed */
+        color: #030308;
       }
       .color-input-group {
         display: flex;
@@ -143,6 +167,7 @@
         border-radius: 5px;
         cursor: pointer;
         z-index: 11;
+        visibility: hidden;
       }
 
       #webmButton {
@@ -151,6 +176,23 @@
 
       #gifButton {
         right: 150px;
+      }
+
+      #gradient-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0.5;
+        background: linear-gradient(
+          90deg,
+          #7d67e0 0%,
+          rgba(137, 121, 217, 0.4) 62.5%,
+          rgba(137, 121, 217, 0.3) 100%
+        );
+        z-index: 7; /* Place it above the logo-container but below the controls */
+        pointer-events: none; /* Allow clicks to pass through */
       }
     </style>
   </head>
@@ -218,21 +260,28 @@
       <button id="resetButton">Reset to Default</button>
     </div>
     <div id="text-container">
-      <div id="believe-text">BELIEVE</div>
+      <img
+        id="morph-svg"
+        src="./morph.svg"
+        alt="Morph SVG"
+        style="filter: drop-shadow(0 0 3px #030308) blur(1px)"
+      />
+      <div id="believe-text">THE MOST POWERFUL PLACE TO EARN ONCHAIN</div>
     </div>
     <div id="logo-container"></div>
+    <div id="gradient-overlay"></div>
     <canvas id="waveCanvas"></canvas>
     <script>
       // Default values moved to the top
       const defaultValues = {
-        freq1: 2222,
-        freq2: 11,
+        freq1: 1555,
+        freq2: 22,
         speed1: 55,
         speed2: 1,
-        waveColor: "#DCD7F4",
+        waveColor: "#36297E",
         boxColor: "#DCD7F4",
         shadowIntensity: 5,
-        bgColor: "#DCD7F4",
+        bgColor: "#7C72BC",
         textBlur: 2,
       };
 
@@ -338,6 +387,7 @@
         const intensity = document.getElementById("shadowIntensity").value;
         const blurAmount = document.getElementById("textBlur").value;
         const believeText = document.getElementById("believe-text");
+        const morphSvg = document.getElementById("morph-svg");
 
         believeText.style.textShadow = `0 0 ${intensity}px ${shadowColor}`;
         believeText.style.filter = `blur(${blurAmount}px)`;
@@ -454,6 +504,7 @@
       }
 
       function render(time) {
+        console.log("Rendering frame at time:", time); // Add this line
         const normalizedTime = time * 0.001; // Convert to seconds
 
         gl.clearColor(0, 0, 0, 1); // Set clear color to black
@@ -594,56 +645,10 @@
       // Initialize controls with default values
       resetToDefault();
 
-      function createTiledLogo() {
-        const logoContainer = document.getElementById("logo-container");
-        logoContainer.innerHTML = ""; // Clear existing content
-        const bgColor = document.getElementById("bgColor").value;
-
-        // Create three rows
-        for (let i = 0; i < 3; i++) {
-          const row = document.createElement("div");
-          row.className = "logo-row";
-          logoContainer.appendChild(row);
-        }
-
-        // Calculate logo dimensions once
-        const tempLogo = document.createElement("img");
-        tempLogo.src = "./Logo.svg";
-        tempLogo.style.height = "33.33vh";
-        document.body.appendChild(tempLogo);
-        const logoWidth = tempLogo.offsetWidth;
-        document.body.removeChild(tempLogo);
-
-        const logosPerRow = Math.ceil(window.innerWidth / logoWidth) + 1;
-
-        // Fetch SVG content once
-        fetch("./Logo.svg")
-          .then((response) => response.text())
-          .then((svgContent) => {
-            const rows = logoContainer.querySelectorAll(".logo-row");
-            rows.forEach((row) => {
-              for (let j = 0; j < logosPerRow; j++) {
-                const svgElement = new DOMParser()
-                  .parseFromString(svgContent, "image/svg+xml")
-                  .querySelector("svg");
-                svgElement.style.backgroundColor = bgColor;
-                svgElement.id = "logo";
-                svgElement.style.height = "33.33vh";
-                svgElement.style.width = "auto";
-                svgElement.style.opacity = "0.5";
-                svgElement.style.mixBlendMode = "overlay";
-                row.appendChild(svgElement);
-              }
-            });
-          });
-      }
-
       // Update SVG background colors when bgColor changes
       document.getElementById("bgColor").addEventListener("input", () => {
         const newColor = document.getElementById("bgColor").value;
-        document.querySelectorAll("#logo-container svg").forEach((svg) => {
-          svg.style.backgroundColor = newColor;
-        });
+        updateBackgroundColor();
       });
 
       // Add buttons to trigger the recording
@@ -674,9 +679,9 @@
         }
       });
 
-      // Make sure to call createTiledLogo() initially and on window resize
-      window.addEventListener("resize", createTiledLogo);
-      createTiledLogo();
+      document
+        .getElementById("waveColor")
+        .addEventListener("input", updateText);
 
       requestAnimationFrame(render);
     </script>
