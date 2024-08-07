@@ -43,7 +43,7 @@
         transition: max-height 0.3s ease-out, padding 0.3s ease-out;
         max-height: 1000px;
         overflow: hidden;
-        /* visibility: hidden; */
+        visibility: hidden;
       }
       #controls.minimized {
         max-height: 30px;
@@ -95,6 +95,7 @@
         position: fixed;
         top: 0;
         left: 0;
+        margin-top: 48px;
         width: 100%;
         height: 100%;
         display: flex;
@@ -117,7 +118,7 @@
         margin-bottom: 2vh; /* Add some space between text and SVG */
       }
       #morph-svg {
-        width: 160px; /* Adjust this value to change the size of the SVG */
+        width: 88px; /* Adjust this value to change the size of the SVG */
         height: auto;
         max-width: 560px; /* Limit the maximum width if needed */
         color: #030308;
@@ -193,6 +194,7 @@
         );
         z-index: 7; /* Place it above the logo-container but below the controls */
         pointer-events: none; /* Allow clicks to pass through */
+        mix-blend-mode: multiply;
       }
     </style>
   </head>
@@ -260,13 +262,13 @@
       <button id="resetButton">Reset to Default</button>
     </div>
     <div id="text-container">
+      <div id="believe-text">THE MOST POWERFUL PLACE TO EARN ONCHAIN</div>
       <img
         id="morph-svg"
         src="./morph.svg"
         alt="Morph SVG"
         style="filter: drop-shadow(0 0 3px #030308) blur(1px)"
       />
-      <div id="believe-text">THE MOST POWERFUL PLACE TO EARN ONCHAIN</div>
     </div>
     <div id="logo-container"></div>
     <div id="gradient-overlay"></div>
@@ -274,7 +276,7 @@
     <script>
       // Default values moved to the top
       const defaultValues = {
-        freq1: 1555,
+        freq1: 2222,
         freq2: 22,
         speed1: 55,
         speed2: 1,
