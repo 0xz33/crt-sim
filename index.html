@@ -3,27 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.10.1/dist/ffmpeg.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.js"></script>
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-    <title>Wave Interference Pattern with Rectangles</title>
-
-    <!-- Add the font import here -->
-    <link href="./MicrogrammaExtendedBold.otf" rel="stylesheet" />
-
+    <title>Wave Interference Pattern</title>
     <style>
-      /* Add the font-face declaration */
-      @font-face {
-        font-family: "Microgramma";
-        src: url("./MicrogrammaExtendedBold.otf") format("opentype");
-        font-weight: 700;
-        font-style: normal;
-      }
-
       body {
         margin: 0;
         overflow: hidden;
-        font-family: Inter, sans-serif;
         background-color: #000000;
       }
       canvas {
@@ -32,302 +16,71 @@
         top: 0;
         left: 0;
       }
-      #controls {
-        position: absolute;
-        top: 10px;
-        left: 10px;
-        background: rgba(255, 255, 255, 0.7);
-        padding: 10px;
-        border-radius: 5px;
-        z-index: 10;
-        transition: max-height 0.3s ease-out, padding 0.3s ease-out;
-        max-height: 1000px;
-        overflow: hidden;
-        visibility: hidden;
+      .logo-container {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1;
       }
-      #controls.minimized {
-        max-height: 30px;
-        padding: 5px 10px;
-        width: auto;
-      }
-      .control-title {
-        display: none;
-        font-weight: bold;
-      }
-      #controls.minimized .control-title {
+      .logo {
+        max-width: 100%;
+        max-height: 100vh;
         display: block;
-      }
-      #controls.minimized > *:not(#minimize-btn):not(.control-title) {
-        display: none;
-      }
-      .input-group {
-        display: flex;
-        align-items: center;
-        margin-bottom: 5px;
-      }
-      .input-group button {
-        width: 25px;
-        height: 25px;
-        font-size: 16px;
-        padding: 0;
-        margin: 0 2px;
-      }
-      .input-group input[type="number"] {
-        width: 60px;
-      }
-      #minimize-btn {
-        position: absolute;
-        top: 5px;
-        right: 5px;
-        cursor: pointer;
-        background: none;
-        border: none;
-        font-size: 20px;
-      }
-      input {
-        width: 50px;
-      }
-      input[type="color"] {
-        width: 50px;
-        height: 20px;
-      }
-      #text-container {
-        position: fixed;
-        top: 0;
-        left: 0;
-        margin-top: 48px;
-        width: 100%;
-        height: 100%;
-        display: flex;
-        gap: 40px;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        z-index: 5;
-      }
-      #believe-text {
-        font-size: 5.55vw;
-        font-weight: bold;
-        font-family: "Microgramma", sans-serif;
-        color: #1d2819;
-        line-height: 1;
-        text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-        mix-blend-mode: exclusion;
-        text-align: center;
-        filter: blur(44px);
-        margin-bottom: 2vh; /* Add some space between text and SVG */
-      }
-      #morph-svg {
-        width: 88px; /* Adjust this value to change the size of the SVG */
-        height: auto;
-        max-width: 560px; /* Limit the maximum width if needed */
-        color: #030308;
-      }
-      .color-input-group {
-        display: flex;
-        align-items: center;
-      }
-      .color-input-group input[type="color"] {
-        margin-right: 5px;
-      }
-      .color-input-group input[type="text"] {
-        width: 70px;
-      }
-      #logo-container {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: 6;
-        pointer-events: none;
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-      }
-      .logo-row {
-        display: flex;
-        justify-content: space-around;
-        align-items: center;
-      }
-      #logo {
-        width: auto;
-        height: 33.33vh;
-        opacity: 0.5;
-        mix-blend-mode: overlay;
-      }
-      #webmButton,
-      #gifButton {
-        position: fixed;
-        bottom: 20px;
-        padding: 10px 20px;
-        background-color: #4caf50;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        z-index: 11;
-        visibility: hidden;
-      }
-
-      #webmButton {
-        right: 20px;
-      }
-
-      #gifButton {
-        right: 150px;
-      }
-
-      #gradient-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        opacity: 0.5;
-        background: linear-gradient(
-          90deg,
-          #7d67e0 0%,
-          rgba(137, 121, 217, 0.4) 62.5%,
-          rgba(137, 121, 217, 0.3) 100%
-        );
-        z-index: 7; /* Place it above the logo-container but below the controls */
-        pointer-events: none; /* Allow clicks to pass through */
-        mix-blend-mode: multiply;
       }
     </style>
   </head>
   <body>
-    <div id="controls">
-      <button id="minimize-btn">-</button>
-      <div class="control-title">Control Panel</div>
-      <div class="input-group">
-        <label>Wave 1 Frequency:</label>
-        <button class="decrement">-</button>
-        <input type="number" id="freq1" value="5" step="0.1" />
-        <button class="increment">+</button>
-      </div>
-      <div class="input-group">
-        <label>Wave 2 Frequency:</label>
-        <button class="decrement">-</button>
-        <input type="number" id="freq2" value="5" step="0.1" />
-        <button class="increment">+</button>
-      </div>
-      <div class="input-group">
-        <label>Wave 1 Speed:</label>
-        <button class="decrement">-</button>
-        <input type="number" id="speed1" value="1.0" step="0.1" />
-        <button class="increment">+</button>
-      </div>
-      <div class="input-group">
-        <label>Wave 2 Speed:</label>
-        <button class="decrement">-</button>
-        <input type="number" id="speed2" value="0.5" step="0.1" />
-        <button class="increment">+</button>
-      </div>
-      <label>Wave Color:</label>
-      <div class="color-input-group">
-        <input type="color" id="waveColor" value="#DCD7F4" />
-        <input type="text" id="waveColorHex" value="#DCD7F4" />
-      </div>
-      <br />
-      <label>Box Color:</label>
-      <div class="color-input-group">
-        <input type="color" id="boxColor" value="#00ff00" />
-        <input type="text" id="boxColorHex" value="#00ff00" />
-      </div>
-      <br />
-      <label>Background Color:</label>
-      <div class="color-input-group">
-        <input type="color" id="bgColor" value="#000000" />
-        <input type="text" id="bgColorHex" value="#000000" />
-      </div>
-      <br />
-      <label
-        >Shadow Intensity:
-        <input type="range" id="shadowIntensity" min="0" max="20" value="5"
-      /></label>
-      <label>
-        Text Blur:
-        <input
-          type="range"
-          id="textBlur"
-          min="0"
-          max="10"
-          value="2"
-          step="0.1"
-        />
-      </label>
-      <button id="resetButton">Reset to Default</button>
-    </div>
-    <div id="text-container">
-      <div id="believe-text">FREEDOM OF <br />CAPITAL MOVEMENT</div>
+    <canvas id="waveCanvas"></canvas>
+    <div class="logo-container">
       <img
-        id="morph-svg"
-        src="./morph.svg"
-        alt="Morph SVG"
-        style="filter: drop-shadow(0 0 3px #1d2819) blur(1px)"
+        src="expeditiondraftlogo.png"
+        alt="Expedition Draft Logo"
+        class="logo"
       />
     </div>
-    <div id="logo-container"></div>
-    <div id="gradient-overlay"></div>
-    <canvas id="waveCanvas"></canvas>
     <script>
-      // Default values moved to the top
-      const defaultValues = {
-        freq1: 4444,
-        freq2: 1111,
-        speed1: 0,
-        speed2: -33,
-        waveColor: "#B2FE99",
-        boxColor: "#DCD7F4",
-        shadowIntensity: 5,
-        bgColor: "#4C6644",
-        textBlur: 2,
-      };
-      const baseCRTValues = {
-        freq1: 1555,
-        freq2: 22,
-        speed1: 55,
-        speed2: 1,
-        waveColor: "#B2FE99",
-        boxColor: "#DCD7F4",
-        shadowIntensity: 5,
-        bgColor: "#4C6644",
-        textBlur: 2,
-      };
-
       const canvas = document.getElementById("waveCanvas");
       const gl = canvas.getContext("webgl");
 
+      // Easy-to-edit values
+      const waveParams = {
+        freq1: 9,
+        freq2: 777,
+        speed1: 5,
+        speed2: 5,
+        waveColor: "#ffffff",
+        boxColor: "#fcfcfc",
+        bgColor: "#fcfcfc",
+      };
+
       const vertexShaderSource = `
-            attribute vec2 a_position;
-            void main() {
-                gl_Position = vec4(a_position, 0.0, 1.0);
-            }
-        `;
+        attribute vec2 a_position;
+        void main() {
+            gl_Position = vec4(a_position, 0.0, 1.0);
+        }
+      `;
 
       const fragmentShaderSource = `
-            precision mediump float;
-            uniform vec2 u_resolution;
-            uniform float u_time;
-            uniform float u_freq1;
-            uniform float u_freq2;
-            uniform float u_speed1;
-            uniform float u_speed2;
-            uniform vec3 u_color;
-            uniform vec3 u_bgColor;
+        precision mediump float;
+        uniform vec2 u_resolution;
+        uniform float u_time;
+        uniform float u_freq1;
+        uniform float u_freq2;
+        uniform float u_speed1;
+        uniform float u_speed2;
+        uniform vec3 u_color;
+        uniform vec3 u_bgColor;
 
-            void main() {
-                vec2 st = gl_FragCoord.xy / u_resolution;
-                float wave1 = sin(st.x * u_freq1 + u_time * u_speed1) * 0.5 + 0.5;
-                float wave2 = sin(st.y * u_freq2 + u_time * u_speed2) * 0.5 + 0.5;
-                float interference = (wave1 + wave2) / 2.0;
-                vec3 waveColor = u_color * interference;
-                gl_FragColor = vec4(mix(u_bgColor, waveColor, interference), 1.0);
-            }
-        `;
+        void main() {
+            vec2 st = gl_FragCoord.xy / u_resolution;
+            float wave1 = sin(st.x * u_freq1 + u_time * u_speed1) * 0.5 + 0.5;
+            float wave2 = sin(st.y * u_freq2 + u_time * u_speed2) * 0.5 + 0.5;
+            float interference = (wave1 + wave2) / 2.0;
+            vec3 waveColor = u_color * interference;
+            gl_FragColor = vec4(mix(u_bgColor, waveColor, interference), 1.0);
+        }
+      `;
 
       function createShader(gl, type, source) {
         const shader = gl.createShader(type);
@@ -395,132 +148,10 @@
         return [r, g, b];
       }
 
-      function updateText() {
-        const shadowColor = document.getElementById("waveColor").value;
-        const intensity = document.getElementById("shadowIntensity").value;
-        const blurAmount = document.getElementById("textBlur").value;
-        const believeText = document.getElementById("believe-text");
-        const morphSvg = document.getElementById("morph-svg");
-
-        believeText.style.textShadow = `0 0 ${intensity}px ${shadowColor}`;
-        believeText.style.filter = `blur(${blurAmount}px)`;
-      }
-
-      function updateBackgroundColor() {
-        const bgColor = document.getElementById("bgColor").value;
-        document.body.style.backgroundColor = bgColor;
-      }
-
-      function resetToDefault() {
-        for (const [id, value] of Object.entries(defaultValues)) {
-          const element = document.getElementById(id);
-          element.value = value;
-          if (element.type === "color") {
-            element.dispatchEvent(new Event("input"));
-            document.getElementById(`${id}Hex`).value = value.toUpperCase();
-          }
-        }
-        updateText();
-        updateBackgroundColor();
-      }
-
-      document
-        .getElementById("resetButton")
-        .addEventListener("click", resetToDefault);
-
-      let isRecording = false;
-
-      function recordWebM(duration) {
-        if (isRecording) return;
-        isRecording = true;
-
-        const stream = canvas.captureStream(60); // 60 fps
-        const recorder = new MediaRecorder(stream, {
-          mimeType: "video/webm; codecs=vp9",
-          videoBitsPerSecond: 5000000,
-        });
-        const chunks = [];
-
-        recorder.ondataavailable = (e) => chunks.push(e.data);
-        recorder.onstop = () => {
-          const blob = new Blob(chunks, { type: "video/webm" });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = "wave_loop.webm";
-          a.click();
-          URL.revokeObjectURL(url);
-          isRecording = false;
-        };
-
-        recorder.start();
-        setTimeout(() => recorder.stop(), duration * 1000);
-      }
-
-      function recordGIF(duration) {
-        if (isRecording) return;
-        isRecording = true;
-
-        const fps = 30;
-        const totalFrames = duration * fps;
-        let frameCount = 0;
-
-        const gif = new GIF({
-          workers: 2,
-          quality: 10,
-          width: canvas.width,
-          height: canvas.height,
-          workerScript:
-            "https://cdnjs.cloudflare.com/ajax/libs/gif.js/0.2.0/gif.worker.js",
-        });
-
-        function captureFrame(time) {
-          if (frameCount < totalFrames) {
-            render(time); // Render the frame
-            gif.addFrame(canvas, { copy: true, delay: 1000 / fps });
-            frameCount++;
-            requestAnimationFrame(captureFrame);
-          } else {
-            gif.render();
-          }
-        }
-
-        gif.on("finished", function (blob) {
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement("a");
-          a.href = url;
-          a.download = "wave_loop.gif";
-          a.click();
-          URL.revokeObjectURL(url);
-          isRecording = false;
-        });
-
-        requestAnimationFrame(captureFrame);
-      }
-
-      function calculateLoopDuration() {
-        const freq1 = parseFloat(document.getElementById("freq1").value);
-        const freq2 = parseFloat(document.getElementById("freq2").value);
-        const speed1 = parseFloat(document.getElementById("speed1").value);
-        const speed2 = parseFloat(document.getElementById("speed2").value);
-
-        // Calculate the period of each wave
-        const period1 = Math.abs(1 / (freq1 * speed1));
-        const period2 = Math.abs(1 / (freq2 * speed2));
-
-        // Find the least common multiple of the two periods
-        const gcd = (a, b) => (b === 0 ? a : gcd(b, a % b));
-        const lcm = (a, b) => (a * b) / gcd(a, b);
-
-        // Ensure the duration is at least 1 second and at most 10 seconds
-        return Math.min(Math.max(lcm(period1, period2), 1), 10);
-      }
-
       function render(time) {
-        console.log("Rendering frame at time:", time); // Add this line
-        const normalizedTime = time * 0.001; // Convert to seconds
+        const normalizedTime = time * 0.001;
 
-        gl.clearColor(0, 0, 0, 1); // Set clear color to black
+        gl.clearColor(0, 0, 0, 1);
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.useProgram(program);
         gl.enableVertexAttribArray(positionAttributeLocation);
@@ -535,166 +166,16 @@
         );
         gl.uniform2f(resolutionUniformLocation, canvas.width, canvas.height);
         gl.uniform1f(timeUniformLocation, normalizedTime);
-        gl.uniform1f(
-          freq1UniformLocation,
-          parseFloat(document.getElementById("freq1").value)
-        );
-        gl.uniform1f(
-          freq2UniformLocation,
-          parseFloat(document.getElementById("freq2").value)
-        );
-        gl.uniform1f(
-          speed1UniformLocation,
-          parseFloat(document.getElementById("speed1").value)
-        );
-        gl.uniform1f(
-          speed2UniformLocation,
-          parseFloat(document.getElementById("speed2").value)
-        );
-        gl.uniform3fv(
-          colorUniformLocation,
-          hexToRgb(document.getElementById("waveColor").value)
-        );
-        gl.uniform3fv(
-          bgColorUniformLocation,
-          hexToRgb(document.getElementById("bgColor").value)
-        );
+        gl.uniform1f(freq1UniformLocation, waveParams.freq1);
+        gl.uniform1f(freq2UniformLocation, waveParams.freq2);
+        gl.uniform1f(speed1UniformLocation, waveParams.speed1);
+        gl.uniform1f(speed2UniformLocation, waveParams.speed2);
+        gl.uniform3fv(colorUniformLocation, hexToRgb(waveParams.waveColor));
+        gl.uniform3fv(bgColorUniformLocation, hexToRgb(waveParams.bgColor));
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
-        updateText();
         requestAnimationFrame(render);
       }
-
-      function updateColorInputs(colorInput, hexInput) {
-        hexInput.value = colorInput.value.toUpperCase();
-        updateText();
-        updateBackgroundColor();
-      }
-
-      function updateColorFromHex(hexInput, colorInput) {
-        const hexValue = hexInput.value.trim();
-        if (/^#[0-9A-Fa-f]{6}$/.test(hexValue)) {
-          colorInput.value = hexValue;
-          updateText();
-          updateBackgroundColor();
-        }
-      }
-
-      document.getElementById("waveColor").addEventListener("input", () => {
-        updateColorInputs(
-          document.getElementById("waveColor"),
-          document.getElementById("waveColorHex")
-        );
-      });
-
-      document.getElementById("boxColor").addEventListener("input", () => {
-        updateColorInputs(
-          document.getElementById("boxColor"),
-          document.getElementById("boxColorHex")
-        );
-      });
-
-      document.getElementById("bgColor").addEventListener("input", () => {
-        updateColorInputs(
-          document.getElementById("bgColor"),
-          document.getElementById("bgColorHex")
-        );
-        updateBackgroundColor();
-      });
-
-      document.getElementById("waveColorHex").addEventListener("change", () => {
-        updateColorFromHex(
-          document.getElementById("waveColorHex"),
-          document.getElementById("waveColor")
-        );
-      });
-
-      document.getElementById("boxColorHex").addEventListener("change", () => {
-        updateColorFromHex(
-          document.getElementById("boxColorHex"),
-          document.getElementById("boxColor")
-        );
-      });
-
-      document.getElementById("bgColorHex").addEventListener("change", () => {
-        updateColorFromHex(
-          document.getElementById("bgColorHex"),
-          document.getElementById("bgColor")
-        );
-        updateBackgroundColor();
-      });
-
-      // Add increment and decrement functionality
-      document.querySelectorAll(".input-group").forEach((group) => {
-        const input = group.querySelector('input[type="number"]');
-        const decrement = group.querySelector(".decrement");
-        const increment = group.querySelector(".increment");
-
-        decrement.addEventListener("click", () => {
-          input.value = (parseFloat(input.value) - 1).toFixed(1);
-          input.dispatchEvent(new Event("input"));
-        });
-
-        increment.addEventListener("click", () => {
-          input.value = (parseFloat(input.value) + 1).toFixed(1);
-          input.dispatchEvent(new Event("input"));
-        });
-      });
-
-      // Modify the minimize button functionality
-      const controlsPanel = document.getElementById("controls");
-      const minimizeBtn = document.getElementById("minimize-btn");
-
-      minimizeBtn.addEventListener("click", () => {
-        controlsPanel.classList.toggle("minimized");
-        minimizeBtn.textContent = controlsPanel.classList.contains("minimized")
-          ? "+"
-          : "-";
-      });
-
-      // Add event listener for text blur
-      document.getElementById("textBlur").addEventListener("input", updateText);
-
-      // Initialize controls with default values
-      resetToDefault();
-
-      // Update SVG background colors when bgColor changes
-      document.getElementById("bgColor").addEventListener("input", () => {
-        const newColor = document.getElementById("bgColor").value;
-        updateBackgroundColor();
-      });
-
-      // Add buttons to trigger the recording
-      const webmButton = document.createElement("button");
-      webmButton.textContent = "Record WebM";
-      webmButton.id = "webmButton";
-      webmButton.onclick = () => {
-        const duration = calculateLoopDuration();
-        recordWebM(duration);
-      };
-      document.body.appendChild(webmButton);
-
-      const gifButton = document.createElement("button");
-      gifButton.textContent = "Record GIF";
-      gifButton.id = "gifButton";
-      gifButton.onclick = () => {
-        const duration = calculateLoopDuration();
-        recordGIF(duration);
-      };
-      document.body.appendChild(gifButton);
-
-      // Show control panel on Command+K
-      document.addEventListener("keydown", (e) => {
-        if (e.metaKey && e.key === "k") {
-          e.preventDefault();
-          controlsPanel.classList.remove("minimized");
-          minimizeBtn.textContent = "-";
-        }
-      });
-
-      document
-        .getElementById("waveColor")
-        .addEventListener("input", updateText);
 
       requestAnimationFrame(render);
     </script>

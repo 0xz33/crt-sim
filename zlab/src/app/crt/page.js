@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
+import { Canvas } from "@react-three/fiber";
 import WaveInterference from "../components/WaveInterference";
 import ControlPanel from "../components/ControlPanel";
+import { ShaderBackground } from "../components/ShaderBackground";
 import styles from "./crt.module.css";
 
 export default function CRTPage() {
@@ -85,7 +87,20 @@ export default function CRTPage() {
           BELIEVE
         </div>
       </div>
-      <WaveInterference waveParams={waveParams} />
+      <div
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          zIndex: -1,
+        }}
+      >
+        <Canvas>
+          <ShaderBackground waveParams={waveParams} />
+        </Canvas>
+      </div>
     </main>
   );
 }
